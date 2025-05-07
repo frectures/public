@@ -1570,6 +1570,58 @@ public static Stream<BigInteger> fibonacci() {
 > - Enable existing code that uses the `java.lang.Thread` API to adopt virtual threads with minimal change
 > - Enable easy troubleshooting, **debugging**, and profiling of virtual threads with existing JDK tools
 
+- Spring Boot 3.2+ `application.properties`:
+
+```
+spring.threads.virtual.enabled=true
+```
+
+- The following sections assume a single-threaded execution context
+  - e.g. Swing GUI application
+
+### before
+
+```java
+new Thread(() -> {
+    // ...
+    var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    // ...
+}).start();
+```
+
+```java
+bigThreadPool.execute(() -> {
+    // ...
+    var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    // ...
+});
+```
+
+```java
+// ...
+var future = client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
+
+future.thenAccept(response -> {
+    // ...
+}).exceptionally(throwable -> {
+    // ...
+});
+```
+
+### after
+
+```java
+Thread.startVirtualThread(() -> {
+    // ...
+    var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    // ...
+});
+```
+
+- Virtual threads are very cheap
+- Thread pools no longer necessary
+- Async APIs no longer necessary
+
 # Java 25
 
 ## [JEP 512: Compact Source Files and Instance Main Methods](https://openjdk.org/jeps/512)
