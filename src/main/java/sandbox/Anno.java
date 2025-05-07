@@ -4,9 +4,10 @@ import java.lang.reflect.Method;
 
 public class Anno {
     /**
-     * prints all methods of java.lang.Object that are deprecated, and since when
+     * prints those methods of java.lang.Object marked as @Deprecated,
+     * and since when
      */
-    public static void printDeprecatedMethods() {
+    public static void printDeprecatedMethodsOfObject() {
 
         for (Method method : Object.class.getDeclaredMethods()) {
 
@@ -18,11 +19,10 @@ public class Anno {
     }
 
     /**
-     * @return percentage of java.lang.Object methods marked as @IntrinsicCandidate
+     * prints those methods of java.util.List marked as @SafeVarargs
      */
-    public static double percentageOfIntrinsicCandidates() {
+    public static void printSafeVarargsMethodsOfList() {
         // TODO
-        return 0;
     }
 
     /**

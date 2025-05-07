@@ -245,7 +245,6 @@ package java.lang;
 
 public class Object {
 
-    @IntrinsicCandidate
     public Object() {}
 
     // ...
@@ -256,7 +255,7 @@ public class Object {
 ```
 
 > **Exercise:**
-> 1. Implement `Anno.percentageOfIntrinsicCandidates` and print its return value
+> 1. Implement `Anno.printSafeVarargsMethodsOfList` and print its return value
 > 2. Implement `Anno.missesFunctionalInterfaceAnnotation` and test it with sensible inputs
 
 ## Enumerations
@@ -925,14 +924,21 @@ String s = new String(codePoints, 0, codePoints.length); // "abc...z"
 > 1. The 10 random numbers should range from -1 to +1
 > 2. Instead of 31 powers of two, calculate 64, including `-9223372036854775808`
 > 3. The string should contain all 52 letters (upper and lower case)
->    - Hint: `Stream.concat`
+>    - Hint: `IntStream.concat`
 
 ## Case study: Nullable references
 
 ![](img/hoare.jpg)
 
-> **Tony Hoare:** I call it my billion-dollar mistake.  
-> It was the invention of the null reference in 1965.
+> **Tony Hoare:**
+> I call it my billion-dollar mistake.
+> It was the invention of the null reference in 1965.  
+>
+> I was designing the first comprehensive type system for references in an object oriented language (ALGOL W).
+> My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler.
+>
+> But I couldn't resist the temptation to put in a null reference, simply because it was so easy to implement.
+> This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years.
 
 ### Java 7
 
@@ -990,26 +996,26 @@ if (person != null) {
 
 ```java
 public Optional<Person> findFirstPersonWithAge(int age) {
-    return persons.stream()
+    return persons.stream()                                  // Stream<Person>
                   .filter(person -> person.getAge() == age)
-                  .findFirst();
+                  .findFirst();                              // Optional<Person>
 }
 ```
 
 Now the caller is forced to deal with the situation:
 
 ```java
-String name = party.findFirstPersonWithAge(42)
-                   .map(Person::getName)
+String name = party.findFirstPersonWithAge(42)  // Optional<Person>
+                   .map(Person::getName)        // Optional<String>
 
                    // null name:
-                   .orElse(null);
+                   .orElse(null);               // String
 
                    // default name:
-                   .orElse("");
+                   .orElse("");                 // String
 
                    // exception:
-                   .orElseThrow(() -> new Exception("..."));
+                   .orElseThrow();              // String
 ```
 
 excerpt from `Optional<T>` Javadoc:
@@ -1076,10 +1082,10 @@ public final class Optional<T> {
 ```java
 String[] lines = message.split("\n");
 
-int      width = Arrays.stream(lines)
-                       .mapToInt(String::length)
-                       .max()
-                       .orElseThrow();
+int      width = Arrays.stream(lines)             // Stream<String>
+                       .mapToInt(String::length)  // IntStream
+                       .max()                     // OptionalInt
+                       .orElseThrow();            // int
 ```
 
 ## Case study: Comparator
@@ -1088,6 +1094,11 @@ int      width = Arrays.stream(lines)
 
 ```java
 private static final Comparator<Person> compareAgeDescendingNameEmail = new Comparator<>() {
+    /**
+     * Compares its two arguments for order.
+     * Returns a negative integer, zero, or a positive integer
+     * as the first argument is less than, equal to, or greater than the second.
+     */
     @Override
     public int compare(Person a, Person b) {
         int result = Integer.compare(b.getAge(), a.getAge());
@@ -1193,7 +1204,14 @@ ZonedDateTime sundayAtEight = saturday.plusHours(24);
 ZonedDateTime sundayAtNine = saturday.plusDays(1);
 ```
 
-> **Exercise:** Write a program that determines your next 5 birthdays that fall on a weekend.
+> **Exercise:**
+> - Write a program that determines the 2 days this year affected by daylight saving time:
+>   - Last Sunday in March
+>   - Last Sunday in October
+> - Write a program that determines your next 5 birthdays that fall on a Friday/Saturday/Sunday
+>   - Would it work if you were born February 29th?
+> - Write a program that determines the next Christmas holidays perfect for employees:
+>   - None of December 24,25,26 fall on a Saturday/Sunday
 
 # Java 9
 
@@ -1262,7 +1280,8 @@ primes.add(11);   // java.lang.UnsupportedOperationException
 
 - `List.of` is overloaded for up to 10 arguments
   - More arguments are handled via varargs
-  - 0, 1 and 2 elements are implemented without a backing array
+  - `List.of()` always returns the same empty list
+  - 1 or 2 elements do not require a backing array
 - `List.copyOf` creates an immutable list from a source collection
   - If the source collection is already an immutable list, no copy is performed
 
@@ -1273,22 +1292,6 @@ Set<Integer> primes = Set.of(2, 3, 5, 7);
 ```
 
 - All `List.of` and `List.copyOf` bullet points also apply to `Set.of` and `Set.copyOf`
-- The set iteration order is unpredictable and varies from run to run:
-
-```java
-|  Welcome to JShell -- Version 17
-|  For an introduction type: /help intro
-
-jshell> Set.of('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z')
-$1 ==> [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z]
-```
-```java
-|  Welcome to JShell -- Version 17
-|  For an introduction type: /help intro
-
-jshell> Set.of('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z')
-$1 ==> [z, y, x, w, v, u, t, s, r, q, p, o, n, m, l, k, j, i, h, g, f, e, d, c, b, a]
-```
 
 ### Immutable maps (Java 9)
 
@@ -1343,14 +1346,16 @@ Map<String, String> capitals = Map.ofEntries(
 Connection connection = dataSource.getConnection();
 PreparedStatement statement = connection.prepareStatement("select * from user where id = ?");
 ResultSet resultSet = statement.executeQuery();
+```
 
+```java
 var connection = dataSource.getConnection();
 var statement = connection.prepareStatement("select * from user where id = ?");
 var resultSet = statement.executeQuery();
 ```
 
 - Local variables can be declared with `var` instead of a manifest type
-- In that case, the compiler figures out the type from the initializer
+- In that case, the compiler figures out the type from the initializer:
 
 ```java
 var name = "Joshua";

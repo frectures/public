@@ -1,12 +1,12 @@
 ## Bugs
 
 1. Pieces can be rotated into the border
-   - Rotation + horizontal movement destroys the border
+   - Quick rotations destroy the border
 2. When the current piece is close to the ground, penalty lines “grow into them”
    - What should happen instead? Not trivial!
 3. When removing `n` lines:
    - All lines are copied down correctly, but
-   - The top `n` lines remain where they are
+   - The top `n` lines are clones of the first line
 
 ## Missing features
 
